@@ -80,7 +80,7 @@ const initPreviewPanel = (document: vscode.TextDocument) => {
     const panel = vscode.window.createWebviewPanel(
         'example.preview',
         `Preview: ${fileName}`,
-        vscode.ViewColumn.Beside,
+        vscode.ViewColumn.Active,
         {
             enableScripts: true
         }
@@ -102,7 +102,7 @@ const openPreview = (context: vscode.ExtensionContext) => {
     if (editor !== undefined) {
         const document: vscode.TextDocument = editor.document;
 
-        const path = document.uri.toString();
+        const path = document.uri.fsPath;
         const panel = PANELS[path];
 
         if (panel) {

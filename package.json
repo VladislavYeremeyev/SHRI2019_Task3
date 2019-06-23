@@ -2,6 +2,10 @@
 	"name": "shri-ext",
 	"displayName": "shri-ext",
 	"description": "The entrance task of Yandex Web Development School.",
+	"repository": {
+		"type" : "git",
+		"url" : "https://github.com/VladislavYeremeyev/SHRI2019_Task3"
+	},
 	"version": "0.0.1",
 	"engines": {
 		"vscode": "^1.33.0"

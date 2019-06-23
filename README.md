@@ -55,17 +55,132 @@
 
 В этом задании мы хотим проверить вашу способность разобраться в незнакомом коде и API, а также ваш навык отладки. Пожалуйста, опишите в коде или файле README ход ваших мыслей: какие ошибки и как вы нашли, почему они возникли, какие способы их исправления существуют. Мы не ограничиваем вас в использовании сторонних инструментов и библиотек, но будем ждать от вас комментария — что и зачем вы использовали.
 
-
 ## Выполнение задания
 
 ### 1. Плагин запускается в рабочем режиме
 
 #### Сообщение об ошибке при запуске расширения
 
-```
+```vscode-error
 [undefined_publisher.shri-ext]: Menu item references a command `example.showPreviewToSide` which is not defined in the 'commands' section.
 ```
 
 #### Описание решения
 
 По сообщению ошибки понимаем, что не найдена команда `example.showPreviewToSide`. Просматривая `package.json`, замечаем, что в блоке с командами есть опечатка (v вместо w) - `example.showPrevievToSide`. После исправления расширение запускается.
+
+### 2. Работает перечисленный в условии функционал
+
+### 2.1 Превью интерфейса
+
+Возможность открыть превью присутствует у всех файлов с расширением `.json`. Также превью открывается всем тремя перечисленными в условии способами.
+
+#### Вкладка превью должна открываться рядом с текущим редактором
+
+Изначально превью открывается в отдельной колонке окна редактора (как на скриншоте с описанием задания). Требование, что вкладка превью должна открываться рядом с текущим редактором, я понял так, что при запуске команды открытия превью, оно открывается в соседней вкладке в той же колонке окна редактора.
+
+#### Описание решения
+
+В файле `extension.ts` присутствует следующий код:
+
+```ts
+const initPreviewPanel = (document: vscode.TextDocument) => {
+    const fileName = basename(document.fileName);
+
+    const panel = vscode.window.createWebviewPanel(
+        'example.preview',
+        `Preview: ${fileName}`,
+        vscode.ViewColumn.Beside,
+        {
+            enableScripts: true
+        }
+    );
+
+    PANELS[document.uri.path] = panel;
+
+    const e = panel.onDidDispose(() => {
+        delete PANELS[document.uri.path];
+        e.dispose();
+    });
+
+    return panel;
+};
+```
+
+В методе `createWebviewPanel` третьим параметром передаются опции показа (`showOptions`), такие как фокусировка на новом webview, а также локация webview в окне редактора. Изначально указан параметр `vscode.ViewColumn.Beside`, который открывает webview в соседней с активной вкладкой колонке. При изменении значения на `vscode.ViewColumn.Active`, webview будет открываться рядом в той же колонке окна редактора, что и активная вкладка.
+
+---
+
+#### Если превью уже открыто, то вместо открытия ещё одной вкладки пользователь должен переходить к уже открытой
+
+#### Описание решения
+
+В файле `extension.ts` присутствует следующий код:
+
+```ts
+const openPreview = (context: vscode.ExtensionContext) => {
+    const editor = vscode.window.activeTextEditor;
+
+    if (editor !== undefined) {
+        const document: vscode.TextDocument = editor.document;
+
+        const path = document.uri.toString();
+        const panel = PANELS[path];
+
+        if (panel) {
+            panel.reveal();
+        } else {
+            const panel = initPreviewPanel(document);
+            setPreviewContent(document, context);
+            context.subscriptions.push(panel);
+        }
+    }
+};
+```
+
+В конце кода присутствует условие на проверку открыта ли уже вкладка с превью, но при этом превью все равно открывается каждый раз в новой вкладке. При дебаге замечаем, что `document.uri.toString()` возвращает строку вида `"file:///{path}/{fileName}.json"`, то есть в этой строке присутсвует URI `scheme` параметр, в данном случае со значением `file`.
+
+При этом в этом же файле `extension.ts` в `initPreviewPanel` при запуске команды открытия preview создается панель с webview и в объект `PANELS` записывается переменная панели по ключу `document.uri.path`, который имеет вид `"/{path}/{fileName}.json"`:
+
+```ts
+const initPreviewPanel = (document: vscode.TextDocument) => {
+    const fileName = basename(document.fileName);
+
+    const panel = vscode.window.createWebviewPanel(
+        'example.preview',
+        `Preview: ${fileName}`,
+        vscode.ViewColumn.Active,
+        {
+            enableScripts: true
+        }
+    );
+
+    PANELS[document.uri.path] = panel;
+
+    const e = panel.onDidDispose(() => {
+        delete PANELS[document.uri.path];
+        e.dispose();
+    });
+
+    return panel;
+};
+```
+
+Именно поэтому в условии никогда не находится существующая вкладка, так как происходит поиск по неверному ключу.
+
+Если исправить `const path = document.uri.toString();` на `const path = document.uri.path;` или `const path = document.uri.fsPath;` (**.fsPath** отличается от **.path** тем, что использует специфичные для платформ разделители в путях, а также обработку **UNC** (Universal Naming Convention) путей), то плагин будет работать корректно.
+
+---
+
+#### При изменении структуры блоков в редакторе превью должно обновляться
+
+При запуске превью отображается некорректно.
+
+#### Описание решения
+
+Убрал лишний отступ в `div` в файле `preview/style.css`.
+
+Запускаем расширение, открываем превью и используем команду **Developer: Open Webview Developer Tools** для дебага webview.
+Dev Tools показывает следующие ошибки:
+
+![скриншот WebView](screenshot_webview.png)
