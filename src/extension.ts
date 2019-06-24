@@ -80,7 +80,7 @@ const initPreviewPanel = (document: vscode.TextDocument) => {
     const panel = vscode.window.createWebviewPanel(
         'example.preview',
         `Preview: ${fileName}`,
-        vscode.ViewColumn.Active,
+        vscode.ViewColumn.Beside,
         {
             enableScripts: true
         }
