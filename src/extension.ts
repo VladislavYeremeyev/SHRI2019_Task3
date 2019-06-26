@@ -38,6 +38,10 @@ const createLanguageClient = (context: vscode.ExtensionContext): LanguageClient 
             {
                 scheme: 'file',
                 language: 'json'
+            },
+            {
+                scheme: 'file',
+                language: 'jsonc'
             }
         ],
         synchronize: {

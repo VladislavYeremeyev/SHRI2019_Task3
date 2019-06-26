@@ -13,7 +13,7 @@ import {basename} from 'path';
 
 import * as jsonToAst from 'json-to-ast';
 
-import {makeLint, LinterProblem} from './linter';
+import { makeLint, LinterProblem } from './linter';
 import { ExampleConfiguration, Severity, RuleKeys } from './configuration';
 
 let conn = createConnection(ProposedFeatures.all);
@@ -72,41 +72,46 @@ async function validateAll() {
 }
 
 async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-    const source = basename(textDocument.uri);
-    const json = textDocument.getText();
+    if (conf!.enable) {
+        const source = basename(textDocument.uri);
+        const json = textDocument.getText();
 
-    const validateProperty = (property: jsonToAst.AstProperty): LinterProblem<RuleKeys>[] =>
-        /^[A-Z]+$/.test(property.key.value) 
-            ? [{ key: RuleKeys.UppercaseNamesIsForbidden, loc: property.key.loc }] 
-            : [];
+        const validateProperty = (property: jsonToAst.AstProperty): LinterProblem<RuleKeys>[] =>
+            /^[A-Z]+$/.test(property.key.value) 
+                ? [{ key: RuleKeys.UppercaseNamesIsForbidden, loc: property.key.loc }] 
+                : [];
 
-    const validateObject = (obj: jsonToAst.AstObject): LinterProblem<RuleKeys>[] =>
-        obj.children.some(p => p.key.value === 'block') ? [] : [{ key: RuleKeys.BlockNameIsRequired, loc: obj.loc }] ;
-        
-    const diagnostics: Diagnostic[] = makeLint(json, validateProperty, validateObject)
-        .reduce((list: Diagnostic[], problem: LinterProblem<RuleKeys>): Diagnostic[] => {
-            const severity = GetDiagnosticSeverity(problem.key);
+        const validateObject = (obj: jsonToAst.AstObject): LinterProblem<RuleKeys>[] =>
+            obj.children.some(p => p.key.value.toLowerCase() === 'block') ? [] : [{ key: RuleKeys.BlockNameIsRequired, loc: obj.loc }] ;
+            
+        const diagnostics: Diagnostic[] = makeLint(json, validateProperty, validateObject)
+            .reduce((list: Diagnostic[], problem: LinterProblem<RuleKeys>): Diagnostic[] => {
+                const severity = GetDiagnosticSeverity(problem.key);
 
-            if (severity) {
-                const message = GetDiagnosticMessage(problem.key);
+                if (severity) {
+                    const message = GetDiagnosticMessage(problem.key);
 
-                let diagnostic: Diagnostic = {
-                    range: {
-                        start: textDocument.positionAt(problem.loc.start.offset),
-                        end: textDocument.positionAt(problem.loc.end.offset)
-                    },
-                    severity,
-                    message,
-                    source
-                };
+                    let diagnostic: Diagnostic = {
+                        range: {
+                            start: textDocument.positionAt(problem.loc.start.offset),
+                            end: textDocument.positionAt(problem.loc.end.offset)
+                        },
+                        severity,
+                        message,
+                        source
+                    };
 
-                list.push(diagnostic);
-            }
+                    list.push(diagnostic);
+                }
 
-            return list;
-        }, []);
+                return list;
+            }, []);
 
-    if (diagnostics.length) {
+        if (diagnostics.length) {
+            conn.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+        }
+    } else {
+        const diagnostics: Diagnostic[] = [];
         conn.sendDiagnostics({ uri: textDocument.uri, diagnostics });
     }
 }

@@ -39,15 +39,15 @@ export function makeLint<TProblemKey>(
     validateObject: (property: jsonToAst.AstObject) => LinterProblem<TProblemKey>[]
 ): LinterProblem<TProblemKey>[] {
 
-    const errors: LinterProblem<TProblemKey>[] = [];
+    let errors: LinterProblem<TProblemKey>[] = [];
     const ast: jsonToAst.AstJsonEntity | undefined = parseJson(json);
 
     const cbProp = (property: jsonToAst.AstProperty) => {
-        errors.concat(...validateProperty(property));
+        errors = [...errors, ...validateProperty(property)];
     };
 
     const cbObj = (obj: jsonToAst.AstObject) => {
-        errors.concat(...validateObject(obj));
+        errors = [...errors, ...validateObject(obj)];
     };
 
     if (ast) {

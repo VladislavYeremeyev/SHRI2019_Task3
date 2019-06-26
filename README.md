@@ -85,25 +85,25 @@
 
 ```ts
 const initPreviewPanel = (document: vscode.TextDocument) => {
-    const fileName = basename(document.fileName);
+  const fileName = basename(document.fileName);
 
-    const panel = vscode.window.createWebviewPanel(
-        'example.preview',
-        `Preview: ${fileName}`,
-        vscode.ViewColumn.Beside,
-        {
-            enableScripts: true
-        }
-    );
+  const panel = vscode.window.createWebviewPanel(
+    "example.preview",
+    `Preview: ${fileName}`,
+    vscode.ViewColumn.Beside,
+    {
+      enableScripts: true
+    }
+  );
 
-    PANELS[document.uri.path] = panel;
+  PANELS[document.uri.path] = panel;
 
-    const e = panel.onDidDispose(() => {
-        delete PANELS[document.uri.path];
-        e.dispose();
-    });
+  const e = panel.onDidDispose(() => {
+    delete PANELS[document.uri.path];
+    e.dispose();
+  });
 
-    return panel;
+  return panel;
 };
 ```
 
@@ -123,22 +123,22 @@ const initPreviewPanel = (document: vscode.TextDocument) => {
 
 ```ts
 const openPreview = (context: vscode.ExtensionContext) => {
-    const editor = vscode.window.activeTextEditor;
+  const editor = vscode.window.activeTextEditor;
 
-    if (editor !== undefined) {
-        const document: vscode.TextDocument = editor.document;
+  if (editor !== undefined) {
+    const document: vscode.TextDocument = editor.document;
 
-        const path = document.uri.toString();
-        const panel = PANELS[path];
+    const path = document.uri.toString();
+    const panel = PANELS[path];
 
-        if (panel) {
-            panel.reveal();
-        } else {
-            const panel = initPreviewPanel(document);
-            setPreviewContent(document, context);
-            context.subscriptions.push(panel);
-        }
+    if (panel) {
+      panel.reveal();
+    } else {
+      const panel = initPreviewPanel(document);
+      setPreviewContent(document, context);
+      context.subscriptions.push(panel);
     }
+  }
 };
 ```
 
@@ -148,25 +148,25 @@ const openPreview = (context: vscode.ExtensionContext) => {
 
 ```ts
 const initPreviewPanel = (document: vscode.TextDocument) => {
-    const fileName = basename(document.fileName);
+  const fileName = basename(document.fileName);
 
-    const panel = vscode.window.createWebviewPanel(
-        'example.preview',
-        `Preview: ${fileName}`,
-        vscode.ViewColumn.Active,
-        {
-            enableScripts: true
-        }
-    );
+  const panel = vscode.window.createWebviewPanel(
+    "example.preview",
+    `Preview: ${fileName}`,
+    vscode.ViewColumn.Active,
+    {
+      enableScripts: true
+    }
+  );
 
-    PANELS[document.uri.path] = panel;
+  PANELS[document.uri.path] = panel;
 
-    const e = panel.onDidDispose(() => {
-        delete PANELS[document.uri.path];
-        e.dispose();
-    });
+  const e = panel.onDidDispose(() => {
+    delete PANELS[document.uri.path];
+    e.dispose();
+  });
 
-    return panel;
+  return panel;
 };
 ```
 
@@ -198,3 +198,158 @@ Dev Tools показывает следующие ошибки:
 Результат:
 
 ![скриншот WebView](screens/screenshot_preview.png)
+
+### 2.2 Линтер структуры блоков
+
+Изначально линтер не работает, как ожидалось. Также в файлах `src/linter.ts` и `src/server.ts` можно наблюдать ошибки, связанные с типами.
+
+![скриншот с ошибками](screens/screenshot_errors.png)
+
+#### Описание решения
+
+Просмотрев ошибки, замечаем, что ошибка в описании типов в файле `src/custom.d.ts` в интерфейсе объекта `AstObject`. Логично, что "детьми" объекта должны являться его поля (`AstProperty`), которые состоят из пар ключ-значение (`AstIdentifier` и `AstJsonEntity`). Также, это подтверждается в репозитории [библиотеки](https://github.com/vtrushin/json-to-ast#node-types). Но в коде значение типа `children` у объекта - массив сущностей `AstJsonEntity[]`, а не массив полей объекта `AstProperty[]`.
+
+```ts
+export interface AstObject {
+  type: "Object";
+  children: AstJsonEntity[];
+  loc: AstLocation;
+}
+
+export interface AstProperty {
+  type: "Property";
+  key: AstIdentifier;
+  value: AstJsonEntity;
+  loc: AstLocation;
+}
+
+export interface AstIdentifier {
+  type: "Identifier";
+  value: string;
+  raw: string;
+  loc: AstLocation;
+}
+
+export type AstJsonEntity = AstObject | AstArray | AstLiteral;
+```
+
+После исправления ошибки пропадают:
+
+```ts
+export interface AstObject {
+  type: "Object";
+  children: AstProperty[];
+  loc: AstLocation;
+}
+```
+
+Но отображение ошибок линтером так и не появляется. Чтобы найти проблему, добавляю возможность дебажить `Language Server` расширения, описывая конфигурации в файле `.vscode/launch.json`. Это позволяет запустить дебаг-режим для клиента и сервера поочередно либо одновременно (с помощью `compounds`):
+
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "outFiles": ["${workspaceFolder}/out/**/*.js"],
+      "preLaunchTask": "npm: watch"
+    },
+    {
+      "type": "node",
+      "request": "attach",
+      "name": "Attach to Server",
+      "port": 6009,
+      "restart": true,
+      "outFiles": ["${workspaceFolder}/out/**/*.js"]
+    },
+    {
+      "name": "Extension Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/out/test"
+      ],
+      "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
+      "preLaunchTask": "npm: watch"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Client + Server",
+      "configurations": ["Run Extension", "Attach to Server"]
+    }
+  ]
+}
+```
+
+При дебаге замечаем, что ошибки распознаются корректно, но функция `makeLint` в файле `src/linter.ts` всегда возвращает пустой массив ошибок `errors`.
+
+```ts
+export function makeLint<TProblemKey>(
+  json: string,
+  validateProperty: (
+    property: jsonToAst.AstProperty
+  ) => LinterProblem<TProblemKey>[],
+  validateObject: (
+    property: jsonToAst.AstObject
+  ) => LinterProblem<TProblemKey>[]
+): LinterProblem<TProblemKey>[] {
+  const errors: LinterProblem<TProblemKey>[] = [];
+  const ast: jsonToAst.AstJsonEntity | undefined = parseJson(json);
+
+  const cbProp = (property: jsonToAst.AstProperty) => {
+    errors.concat(...validateProperty(property));
+  };
+
+  const cbObj = (obj: jsonToAst.AstObject) => {
+    errors.concat(...validateObject(obj));
+  };
+
+  if (ast) {
+    walk(ast, cbProp, cbObj);
+  }
+
+  return errors;
+}
+```
+
+Изначально создается пустой массив `errors`. Но `Array.prototype.concat()` не изменяет исходный массив. Поэтому `errors` всегда будет иметь изначальное значение - пустой массив. Данную проблему можно исправить, используя вместо `.concat()` метод `.push()` или сделать `errors` не `const`, а `let` переменной и добавить присвоение:
+
+```ts
+errors = errors.concat(...validateObject(obj));
+```
+
+Либо использовать **ES6** деструктуризацию (Spread & Rest Syntax):
+
+```ts
+errors = [...errors, ...validateObject(obj)];
+```
+
+После исправлений линтер начинает подсвечивать ошибки:
+
+![скриншот линтера](screens/screenshot_linter.png)
+
+Также добавил `toLowerCase()` в проверку наличия поля `block` в объекте, чтобы линтер не выдавал ошибку `"в каждом объекте должно быть поле block"`, если есть поле `block` с буквами в другом регистре (например, `BLOCK`, `blOck` и т. д.), так как на скриншоте с примером работы расширения была изображена именно такая логика.
+
+Файл `src/server.ts`:
+
+```ts
+const validateObject = (obj: jsonToAst.AstObject): LinterProblem<RuleKeys>[] =>
+  obj.children.some(p => p.key.value.toLowerCase() === "block")
+    ? []
+    : [{ key: RuleKeys.BlockNameIsRequired, loc: obj.loc }];
+```
+
+### 2.3 Настройки
+
+Настройки работают корректно. Установил значение `example.enable` в `true` по умолчанию, чтобы линтер работал сразу при запуске. Изначально не работало включение\выключение линтера (изменение настройки плагина `example.enable`). Добавил в `validateTextDocument` в файле `src/server.ts` проверку значения поля `enable` у настроек, чтобы была возможность включать\выключать линтер.
+
+### 5. Дополнительно
+
+- Добавил поддержку формата `JSON with comments` (`.jsonc`) (Интеграция работы линтера и комментариев в файле пока не реализована).

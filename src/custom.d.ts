@@ -37,7 +37,7 @@ declare namespace JsonToAst {
 
     export interface AstObject {
         type: 'Object';
-        children: AstJsonEntity[];
+        children: AstProperty[];
         loc: AstLocation;
     }
 
