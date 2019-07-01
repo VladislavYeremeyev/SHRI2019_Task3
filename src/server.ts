@@ -82,7 +82,7 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
                 : [];
 
         const validateObject = (obj: jsonToAst.AstObject): LinterProblem<RuleKeys>[] =>
-            obj.children.some(p => p.key.value.toLowerCase() === 'block') ? [] : [{ key: RuleKeys.BlockNameIsRequired, loc: obj.loc }] ;
+            obj.children.some(p => p.key.value === 'block') ? [] : [{ key: RuleKeys.BlockNameIsRequired, loc: obj.loc }] ;
             
         const diagnostics: Diagnostic[] = makeLint(json, validateProperty, validateObject)
             .reduce((list: Diagnostic[], problem: LinterProblem<RuleKeys>): Diagnostic[] => {
