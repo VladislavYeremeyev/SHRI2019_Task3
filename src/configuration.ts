@@ -1,19 +1,19 @@
 import jsonToAst = require("json-to-ast");
 
 export enum RuleKeys {
-  FormElementsSizeShouldBeEqual = "FORM.INPUT_AND_LABEL_SIZES_SHOULD_BE_EQUAL",
-  FormContentVerticalSpaceIsInvalid = "FORM.CONTENT_VERTICAL_SPACE_IS_INVALID",
-  FormContentHorizontalSpaceIsInvalid = "FORM.CONTENT_HORIZONTAL_SPACE_IS_INVALID",
-  FormContentItemIndentIsInvalid = "FORM.CONTENT_ITEM_INDENT_IS_INVALID",
-  FormHeaderTextSizeIsInvalid = "FORM.HEADER_TEXT_SIZE_IS_INVALID",
-  FormHeaderVerticalSpaceIsInvalid = "FORM.HEADER_VERTICAL_SPACE_IS_INVALID",
-  FormHeaderHorizontalSpaceIsInvalid = "FORM.HEADER_HORIZONTAL_SPACE_IS_INVALID",
-  FormFooterVerticalSpaceIsInvalid = "FORM.FOOTER_VERTICAL_SPACE_IS_INVALID",
-  FormFooterHorizontalSpaceIsInvalid = "FORM.FOOTER_HORIZONTAL_SPACE_IS_INVALID",
-  FormFooterTextSizeIsInvalid = "FORM.FOOTER_TEXT_SIZE_IS_INVALID",
-  TextSeveralH1 = "TEXT.SEVERAL_H1",
-  TextInvalidH2Position = "TEXT.INVALID_H2_POSITION",
-  TextInvalidH3Position = "TEXT.INVALID_H3_POSITION",
+  FormElementsSizeShouldBeEqual = "FORM_INPUT_AND_LABEL_SIZES_SHOULD_BE_EQUAL",
+  FormContentVerticalSpaceIsInvalid = "FORM_CONTENT_VERTICAL_SPACE_IS_INVALID",
+  FormContentHorizontalSpaceIsInvalid = "FORM_CONTENT_HORIZONTAL_SPACE_IS_INVALID",
+  FormContentItemIndentIsInvalid = "FORM_CONTENT_ITEM_INDENT_IS_INVALID",
+  FormHeaderTextSizeIsInvalid = "FORM_HEADER_TEXT_SIZE_IS_INVALID",
+  FormHeaderVerticalSpaceIsInvalid = "FORM_HEADER_VERTICAL_SPACE_IS_INVALID",
+  FormHeaderHorizontalSpaceIsInvalid = "FORM_HEADER_HORIZONTAL_SPACE_IS_INVALID",
+  FormFooterVerticalSpaceIsInvalid = "FORM_FOOTER_VERTICAL_SPACE_IS_INVALID",
+  FormFooterHorizontalSpaceIsInvalid = "FORM_FOOTER_HORIZONTAL_SPACE_IS_INVALID",
+  FormFooterTextSizeIsInvalid = "FORM_FOOTER_TEXT_SIZE_IS_INVALID",
+  TextSeveralH1 = "TEXT_SEVERAL_H1",
+  TextInvalidH2Position = "TEXT_INVALID_H2_POSITION",
+  TextInvalidH3Position = "TEXT_INVALID_H3_POSITION",
 }
 
 export enum RuleErrorText {

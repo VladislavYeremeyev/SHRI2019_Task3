@@ -4,7 +4,7 @@ import {
   IResult,
   RuleKeys,
   textSizeValues,
-} from "../configuration";
+} from "./configuration";
 import {
   getInnerEntities,
   getMixedObject,

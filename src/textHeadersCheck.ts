@@ -1,5 +1,5 @@
 import jsonToAst = require("json-to-ast");
-import { ILinterProblem, RuleKeys } from "../configuration";
+import { ILinterProblem, RuleKeys } from "./configuration";
 import { getModValue, isBlock } from "./utils";
 
 export function checkTextHeaderRules(

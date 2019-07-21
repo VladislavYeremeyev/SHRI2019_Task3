@@ -1,6 +1,6 @@
 import * as jsonToAst from "json-to-ast";
 import { ILinterProblem, RuleKeys } from "./configuration";
-import { checkTextHeaderRules } from "./customLinter/textHeadersCheck";
+import { checkTextHeaderRules } from "./textHeadersCheck";
 
 function parseJson(json: string): jsonToAst.AstJsonEntity | undefined {
   try {

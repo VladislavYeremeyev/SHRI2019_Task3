@@ -1,5 +1,5 @@
 import * as jsonToAst from "json-to-ast";
-import { ILinterProblem, RuleKeys, spaceValues } from "../configuration";
+import { ILinterProblem, RuleKeys, spaceValues } from "./configuration";
 import { getInnerEntities, getMixedObject, getModsError } from "./utils";
 
 export function checkContentElementRules(

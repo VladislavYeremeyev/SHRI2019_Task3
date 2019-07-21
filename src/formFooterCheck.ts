@@ -4,7 +4,7 @@ import {
   RuleKeys,
   spaceValues,
   textSizeValues,
-} from "../configuration";
+} from "./configuration";
 import { getInnerEntities, getMixedObject, getModsError } from "./utils";
 
 function checkFooterSpaceRules(

@@ -13,13 +13,13 @@ import { basename } from "path";
 import * as jsonToAst from "json-to-ast";
 
 import { IExampleConfiguration, ILinterProblem, RuleErrorText, RuleKeys, Severity } from "./configuration";
-import { checkContentElementRules } from "./customLinter/formContentElementCheck";
-import { checkContentItemElementRules } from "./customLinter/formContentItemElementCheck";
-import { checkFooterRules } from "./customLinter/formFooterCheck";
-import { checkHeaderRules } from "./customLinter/formHeaderCheck";
-import { checkFormContentSize } from "./customLinter/formReferenceSizeCheck";
-import { isBlock } from "./customLinter/utils";
+import { checkContentElementRules } from "./formContentElementCheck";
+import { checkContentItemElementRules } from "./formContentItemElementCheck";
+import { checkFooterRules } from "./formFooterCheck";
+import { checkHeaderRules } from "./formHeaderCheck";
+import { checkFormContentSize } from "./formReferenceSizeCheck";
 import { makeLint } from "./linter";
+import { isBlock } from "./utils";
 
 const conn = createConnection(ProposedFeatures.all);
 const docs = new TextDocuments();
@@ -75,7 +75,6 @@ function getDiagnosticSeverity(key: RuleKeys): DiagnosticSeverity | undefined {
   if (!conf || !conf.severity) {
     return undefined;
   }
-
   const severity: Severity = conf.severity[key];
 
   switch (severity) {

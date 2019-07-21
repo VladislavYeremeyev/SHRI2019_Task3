@@ -29,7 +29,7 @@
 					"default": true,
 					"description": "Enable/disable example linter."
 				},
-				"example.severity.uppercaseNamesIsForbidden": {
+				"example.severity.FORM_INPUT_AND_LABEL_SIZES_SHOULD_BE_EQUAL": {
 					"type": "string",
 					"enum": [
 						"Error",
@@ -39,9 +39,9 @@
 						"None"
 					],
 					"default": "Warning",
-					"description": "The 'uppercaseNamesIsForbidden' rule severity."
+					"description": "The 'FORM_INPUT_AND_LABEL_SIZES_SHOULD_BE_EQUAL' rule severity."
 				},
-				"example.severity.blockNameIsRequired": {
+				"example.severity.FORM_CONTENT_VERTICAL_SPACE_IS_INVALID": {
 					"type": "string",
 					"enum": [
 						"Error",
@@ -51,7 +51,139 @@
 						"None"
 					],
 					"default": "Warning",
-					"description": "The 'blockNameIsRequired' rule severity."
+					"description": "The 'FORM_CONTENT_VERTICAL_SPACE_IS_INVALID' rule severity."
+        },
+        "example.severity.FORM_CONTENT_HORIZONTAL_SPACE_IS_INVALID": {
+					"type": "string",
+					"enum": [
+						"Error",
+						"Warning",
+						"Information",
+						"Hint",
+						"None"
+					],
+					"default": "Warning",
+					"description": "The 'FORM_CONTENT_HORIZONTAL_SPACE_IS_INVALID' rule severity."
+        },
+        "example.severity.FORM_CONTENT_ITEM_INDENT_IS_INVALID": {
+					"type": "string",
+					"enum": [
+						"Error",
+						"Warning",
+						"Information",
+						"Hint",
+						"None"
+					],
+					"default": "Warning",
+					"description": "The 'FORM_CONTENT_ITEM_INDENT_IS_INVALID' rule severity."
+        },
+        "example.severity.FORM_HEADER_TEXT_SIZE_IS_INVALID": {
+					"type": "string",
+					"enum": [
+						"Error",
+						"Warning",
+						"Information",
+						"Hint",
+						"None"
+					],
+					"default": "Warning",
+					"description": "The 'FORM_HEADER_TEXT_SIZE_IS_INVALID' rule severity."
+        },
+        "example.severity.FORM_HEADER_VERTICAL_SPACE_IS_INVALID": {
+					"type": "string",
+					"enum": [
+						"Error",
+						"Warning",
+						"Information",
+						"Hint",
+						"None"
+					],
+					"default": "Warning",
+					"description": "The 'FORM_HEADER_VERTICAL_SPACE_IS_INVALID' rule severity."
+        },
+        "example.severity.FORM_HEADER_HORIZONTAL_SPACE_IS_INVALID": {
+					"type": "string",
+					"enum": [
+						"Error",
+						"Warning",
+						"Information",
+						"Hint",
+						"None"
+					],
+					"default": "Warning",
+					"description": "The 'FORM_HEADER_HORIZONTAL_SPACE_IS_INVALID' rule severity."
+        },
+        "example.severity.FORM_FOOTER_VERTICAL_SPACE_IS_INVALID": {
+					"type": "string",
+					"enum": [
+						"Error",
+						"Warning",
+						"Information",
+						"Hint",
+						"None"
+					],
+					"default": "Warning",
+					"description": "The 'FORM_FOOTER_VERTICAL_SPACE_IS_INVALID' rule severity."
+        },
+        "example.severity.FORM_FOOTER_HORIZONTAL_SPACE_IS_INVALID": {
+					"type": "string",
+					"enum": [
+						"Error",
+						"Warning",
+						"Information",
+						"Hint",
+						"None"
+					],
+					"default": "Warning",
+					"description": "The 'FORM_FOOTER_HORIZONTAL_SPACE_IS_INVALID' rule severity."
+        },
+        "example.severity.FORM_FOOTER_TEXT_SIZE_IS_INVALID": {
+					"type": "string",
+					"enum": [
+						"Error",
+						"Warning",
+						"Information",
+						"Hint",
+						"None"
+					],
+					"default": "Warning",
+					"description": "The 'FORM_FOOTER_TEXT_SIZE_IS_INVALID' rule severity."
+        },
+        "example.severity.TEXT_SEVERAL_H1": {
+					"type": "string",
+					"enum": [
+						"Error",
+						"Warning",
+						"Information",
+						"Hint",
+						"None"
+					],
+					"default": "Warning",
+					"description": "The 'TEXT_SEVERAL_H1' rule severity."
+        },
+        "example.severity.TEXT_INVALID_H2_POSITION": {
+					"type": "string",
+					"enum": [
+						"Error",
+						"Warning",
+						"Information",
+						"Hint",
+						"None"
+					],
+					"default": "Warning",
+					"description": "The 'TEXT_INVALID_H2_POSITION' rule severity."
+        },
+        "example.severity.TEXT_INVALID_H3_POSITION": {
+					"type": "string",
+					"enum": [
+						"Error",
+						"Warning",
+						"Information",
+						"Hint",
+						"None"
+					],
+					"default": "Warning",
+					"description": "The 'TEXT_INVALID_H3_POSITION' rule severity."
 				}
 			}
 		},
@@ -100,9 +232,9 @@
 		"compile": "tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"postinstall": "node ./node_modules/vscode/bin/install",
-    "test": "npm run compile && node ./node_modules/vscode/bin/test",
-    "prettier": "prettier --config .prettierrc.json --write src/**/*.ts",
-    "lint": "tslint -c tslint.json 'src/**/*.ts' 'tests/**/*.spec.ts' --fix"
+		"test": "npm run compile && node ./node_modules/vscode/bin/test",
+		"prettier": "prettier --config .prettierrc.json --write src/**/*.ts",
+		"lint": "tslint -c tslint.json 'src/**/*.ts' 'tests/**/*.spec.ts' --fix"
 	},
 	"devDependencies": {
 		"@types/mocha": "^2.2.42",
