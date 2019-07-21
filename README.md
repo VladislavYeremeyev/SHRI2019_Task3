@@ -381,3 +381,25 @@ const validateObject = (obj: jsonToAst.AstObject): LinterProblem<RuleKeys>[] =>
   - `npm run prettier` - форматирует все `.ts` файлы из папки `src` с помощью `Prettier`.
   - `npm run lint` - форматирует все `.ts` файлы из папки `src` с помощью `TSLint` (Правила, к которым может быть применен autofix).
 - Добавил поддержку формата `JSON with comments` (`.jsonc`) (Интеграция работы линтера и комментариев в файле пока не реализована).
+- Добавил линтер из второго задания и стили из первого задания. Исходный код находится в отдельной ветке, чтобы была возможность оценить исходное расширение.
+
+> [**commit**](https://github.com/VladislavYeremeyev/SHRI2019_Task3/commit/c08d1e28544d1df8d2f1d4aacc962afbe6cf25ba) с линтером
+
+Для просмотра:
+
+- скачать этот [репозиторий](https://github.com/VladislavYeremeyev/SHRI2019_Task3)
+
+- поменять ветску с `master` на [custom-linter](https://github.com/VladislavYeremeyev/SHRI2019_Task3/tree/custom-linter):
+
+```git
+git checkout custom-linter
+```
+
+- убедиться, что выбрана нужная ветка (В папке `src` будет больше файлов)
+- установить зависимости:
+
+```git
+npm install
+```
+
+- запустить расширение vscode (`F5` или вкладка `Debug (Ctrl + Shift + D)` и `Run`)
