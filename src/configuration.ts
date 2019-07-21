@@ -42,6 +42,13 @@ export interface IResult {
   newReferenceSize: string | undefined;
 }
 
+export interface ITextHeadersResult {
+  headerErrors: ILinterProblem<RuleKeys>[];
+  maxLevelValue: number;
+  previousElement: JsonToAst.AstObject | undefined;
+  h1Flag: boolean;
+}
+
 export enum Severity {
   Error = "Error",
   Warning = "Warning",

@@ -1,5 +1,5 @@
 import jsonToAst = require("json-to-ast");
-import { ILinterProblem, RuleKeys } from "./configuration";
+import { ITextHeadersResult, RuleKeys } from "./configuration";
 import { getModValue, isBlock } from "./utils";
 
 export function checkTextHeaderRules(
@@ -7,15 +7,16 @@ export function checkTextHeaderRules(
   prevElement: jsonToAst.AstObject | undefined,
   isH1Found: boolean,
   maxAvailableHeaderLevel: number
-) {
-  let errors: ILinterProblem<RuleKeys>[] = [];
-  let h1Found = isH1Found;
-  let maxLevel = maxAvailableHeaderLevel;
-  let prevElem = prevElement;
+): ITextHeadersResult {
+  const result: ITextHeadersResult = {
+    h1Flag: isH1Found,
+    headerErrors: [],
+    maxLevelValue: maxAvailableHeaderLevel,
+    previousElement: prevElement,
+  };
 
   switch (content.type) {
     case "Array":
-      const initialMaxValue = maxAvailableHeaderLevel;
       content.children.forEach((elem: jsonToAst.AstJsonEntity) => {
         if (elem.type === "Object") {
           if (isBlock(elem, "text")) {
@@ -24,73 +25,71 @@ export function checkTextHeaderRules(
               const modValue = getModValue(mods.value, "type");
               switch (modValue) {
                 case "h1":
-                  if (maxLevel > 1) {
-                    if (typeof prevElem !== "undefined") {
-                      errors.push({
+                  if (result.maxLevelValue > 1) {
+                    if (typeof result.previousElement !== "undefined") {
+                      result.headerErrors.push({
                         key:
                           RuleKeys[
-                            `TextInvalidH${maxLevel}Position` as keyof typeof RuleKeys
+                            `TextInvalidH${result.maxLevelValue}Position` as keyof typeof RuleKeys
                           ],
-                        loc: prevElem.loc,
+                        loc: result.previousElement.loc,
                       });
                     }
                   }
-                  if (h1Found) {
-                    errors.push({
+                  if (result.h1Flag) {
+                    result.headerErrors.push({
                       key: RuleKeys["TextSeveralH1"],
                       loc: elem.loc,
                     });
                   } else {
-                    h1Found = true;
+                    result.h1Flag = true;
                   }
-                  prevElem = elem;
+                  result.previousElement = elem;
                   break;
                 case "h2":
-                  if (maxLevel > 2) {
-                    if (typeof prevElem !== "undefined") {
-                      errors.push({
+                  if (result.maxLevelValue > 2) {
+                    if (typeof result.previousElement !== "undefined") {
+                      result.headerErrors.push({
                         key:
                           RuleKeys[
-                            `TextInvalidH${maxLevel}Position` as keyof typeof RuleKeys
+                            `TextInvalidH${result.maxLevelValue}Position` as keyof typeof RuleKeys
                           ],
-                        loc: prevElem.loc,
+                        loc: result.previousElement.loc,
                       });
                     }
                   }
-                  maxLevel = 2;
-                  prevElem = elem;
+                  result.maxLevelValue = 2;
+                  result.previousElement = elem;
                   break;
                 case "h3":
-                  maxLevel = 3;
-                  prevElem = elem;
+                  result.maxLevelValue = 3;
+                  result.previousElement = elem;
                   break;
                 default:
                   break;
               }
             }
-          } else {
-            maxLevel = initialMaxValue;
           }
 
           const innerContent = elem.children.find(
             (p) => p.key.value === "content"
           );
           if (typeof innerContent !== "undefined") {
-            const {
-              headerErrors,
-              maxLevelValue,
-              previousElement,
-            } = checkTextHeaderRules(
+            const data = checkTextHeaderRules(
               innerContent.value,
               elem,
-              h1Found,
-              maxLevel
+              result.h1Flag,
+              result.maxLevelValue
             );
 
-            errors = [...errors, ...headerErrors];
+            result.headerErrors = [
+              ...result.headerErrors,
+              ...data.headerErrors,
+            ];
 
-            maxLevel = maxLevelValue;
-            prevElem = previousElement;
+            result.maxLevelValue = data.maxLevelValue;
+            result.previousElement = data.previousElement;
+            result.h1Flag = data.h1Flag;
           }
         }
       });
@@ -102,44 +101,44 @@ export function checkTextHeaderRules(
           const modValue = getModValue(mods.value, "type");
           switch (modValue) {
             case "h1":
-              if (maxLevel > 1) {
-                if (typeof prevElem !== "undefined") {
-                  errors.push({
+              if (result.maxLevelValue > 1) {
+                if (typeof result.previousElement !== "undefined") {
+                  result.headerErrors.push({
                     key:
                       RuleKeys[
-                        `TextInvalidH${maxLevel}Position` as keyof typeof RuleKeys
+                        `TextInvalidH${result.maxLevelValue}Position` as keyof typeof RuleKeys
                       ],
-                    loc: prevElem.loc,
+                    loc: result.previousElement.loc,
                   });
                 }
               }
-              if (h1Found) {
-                errors.push({
+              if (result.h1Flag) {
+                result.headerErrors.push({
                   key: RuleKeys["TextSeveralH1"],
                   loc: content.loc,
                 });
               } else {
-                h1Found = true;
+                result.h1Flag = true;
               }
               break;
             case "h2":
-              if (maxLevel > 2) {
-                if (typeof prevElem !== "undefined") {
-                  errors.push({
+              if (result.maxLevelValue > 2) {
+                if (typeof result.previousElement !== "undefined") {
+                  result.headerErrors.push({
                     key:
                       RuleKeys[
-                        `TextInvalidH${maxLevel}Position` as keyof typeof RuleKeys
+                        `TextInvalidH${result.maxLevelValue}Position` as keyof typeof RuleKeys
                       ],
-                    loc: prevElem.loc,
+                    loc: result.previousElement.loc,
                   });
                 }
               }
-              maxLevel = 2;
-              prevElem = content;
+              result.maxLevelValue = 2;
+              result.previousElement = content;
               break;
             case "h3":
-              maxLevel = 3;
-              prevElem = content;
+              result.maxLevelValue = 3;
+              result.previousElement = content;
               break;
             default:
               break;
@@ -151,30 +150,23 @@ export function checkTextHeaderRules(
         (p) => p.key.value === "content"
       );
       if (typeof innerContent !== "undefined") {
-        const {
-          headerErrors,
-          maxLevelValue,
-          previousElement,
-        } = checkTextHeaderRules(
+        const data = checkTextHeaderRules(
           innerContent.value,
-          prevElem,
-          h1Found,
-          maxLevel
+          content,
+          result.h1Flag,
+          result.maxLevelValue
         );
 
-        errors = [...errors, ...headerErrors];
+        result.headerErrors = [...result.headerErrors, ...data.headerErrors];
 
-        maxLevel = maxLevelValue;
-        prevElem = previousElement;
+        result.maxLevelValue = data.maxLevelValue;
+        result.previousElement = data.previousElement;
+        result.h1Flag = data.h1Flag;
       }
       break;
     default:
       break;
   }
 
-  return {
-    headerErrors: errors,
-    maxLevelValue: maxLevel,
-    previousElement: prevElem,
-  };
+  return result;
 }

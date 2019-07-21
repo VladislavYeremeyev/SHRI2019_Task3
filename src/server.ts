@@ -12,7 +12,13 @@ import { basename } from "path";
 
 import * as jsonToAst from "json-to-ast";
 
-import { IExampleConfiguration, ILinterProblem, RuleErrorText, RuleKeys, Severity } from "./configuration";
+import {
+  IExampleConfiguration,
+  ILinterProblem,
+  RuleErrorText,
+  RuleKeys,
+  Severity,
+} from "./configuration";
 import { checkContentElementRules } from "./formContentElementCheck";
 import { checkContentItemElementRules } from "./formContentItemElementCheck";
 import { checkFooterRules } from "./formFooterCheck";
@@ -41,31 +47,31 @@ conn.onDidChangeConfiguration(({ settings }: DidChangeConfigurationParams) => {
 function getDiagnosticMessage(key: RuleKeys): string {
   switch (key) {
     case RuleKeys.FormElementsSizeShouldBeEqual:
-      return RuleErrorText['FormElementsSizeShouldBeEqual'];
+      return RuleErrorText["FormElementsSizeShouldBeEqual"];
     case RuleKeys.FormContentVerticalSpaceIsInvalid:
-      return RuleErrorText['FormContentVerticalSpaceIsInvalid'];
+      return RuleErrorText["FormContentVerticalSpaceIsInvalid"];
     case RuleKeys.FormContentHorizontalSpaceIsInvalid:
-      return RuleErrorText['FormContentHorizontalSpaceIsInvalid'];
+      return RuleErrorText["FormContentHorizontalSpaceIsInvalid"];
     case RuleKeys.FormContentItemIndentIsInvalid:
-      return RuleErrorText['FormContentItemIndentIsInvalid'];
+      return RuleErrorText["FormContentItemIndentIsInvalid"];
     case RuleKeys.FormHeaderTextSizeIsInvalid:
-      return RuleErrorText['FormHeaderTextSizeIsInvalid'];
+      return RuleErrorText["FormHeaderTextSizeIsInvalid"];
     case RuleKeys.FormHeaderVerticalSpaceIsInvalid:
-      return RuleErrorText['FormHeaderVerticalSpaceIsInvalid'];
+      return RuleErrorText["FormHeaderVerticalSpaceIsInvalid"];
     case RuleKeys.FormHeaderHorizontalSpaceIsInvalid:
-      return RuleErrorText['FormHeaderHorizontalSpaceIsInvalid'];
+      return RuleErrorText["FormHeaderHorizontalSpaceIsInvalid"];
     case RuleKeys.FormFooterVerticalSpaceIsInvalid:
-      return RuleErrorText['FormFooterVerticalSpaceIsInvalid'];
+      return RuleErrorText["FormFooterVerticalSpaceIsInvalid"];
     case RuleKeys.FormFooterHorizontalSpaceIsInvalid:
-      return RuleErrorText['FormFooterHorizontalSpaceIsInvalid'];
+      return RuleErrorText["FormFooterHorizontalSpaceIsInvalid"];
     case RuleKeys.FormFooterTextSizeIsInvalid:
-      return RuleErrorText['FormFooterTextSizeIsInvalid'];
+      return RuleErrorText["FormFooterTextSizeIsInvalid"];
     case RuleKeys.TextSeveralH1:
-      return RuleErrorText['TextSeveralH1'];
+      return RuleErrorText["TextSeveralH1"];
     case RuleKeys.TextInvalidH2Position:
-      return RuleErrorText['TextInvalidH2Position'];
+      return RuleErrorText["TextInvalidH2Position"];
     case RuleKeys.TextInvalidH3Position:
-      return RuleErrorText['TextInvalidH3Position'];
+      return RuleErrorText["TextInvalidH3Position"];
     default:
       return `Unknown problem type '${key}'`;
   }
@@ -102,41 +108,39 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     const source = basename(textDocument.uri);
     const json = textDocument.getText();
 
-        const validateObject = (
-          obj: jsonToAst.AstObject
-        ): ILinterProblem<RuleKeys>[] => {
-          if (isBlock(obj, "form")) {
-            const formContent = obj.children.find((p) => p.key.value === "content");
-            if (typeof formContent !== "undefined") {
-              let { errors, referenceSize } = checkFormContentSize(
-                obj,
-                formContent.value,
-                undefined
-              );
-              if (typeof referenceSize === "undefined") {
-                errors = [{ key: RuleKeys.FormElementsSizeShouldBeEqual, loc: obj.loc}];
-              } else {
-                errors = [
-                  ...errors,
-                  ...checkContentElementRules(formContent.value, referenceSize),
-                  ...checkContentItemElementRules(formContent.value, referenceSize),
-                  ...checkHeaderRules(formContent.value, referenceSize),
-                  ...checkFooterRules(formContent.value, referenceSize),
-                ];
-              }
-
-              return [...errors];
-            }
-            return [];
+    const validateObject = (
+      obj: jsonToAst.AstObject
+    ): ILinterProblem<RuleKeys>[] => {
+      if (isBlock(obj, "form")) {
+        const formContent = obj.children.find((p) => p.key.value === "content");
+        if (typeof formContent !== "undefined") {
+          let { errors, referenceSize } = checkFormContentSize(
+            obj,
+            formContent.value,
+            undefined
+          );
+          if (typeof referenceSize === "undefined") {
+            errors = [
+              { key: RuleKeys.FormElementsSizeShouldBeEqual, loc: obj.loc },
+            ];
+          } else {
+            errors = [
+              ...errors,
+              ...checkContentElementRules(formContent.value, referenceSize),
+              ...checkContentItemElementRules(formContent.value, referenceSize),
+              ...checkHeaderRules(formContent.value, referenceSize),
+              ...checkFooterRules(formContent.value, referenceSize),
+            ];
           }
+          return [...errors];
+        }
+        return [];
+      }
 
-          return [];
-        };
+      return [];
+    };
 
-    const diagnostics: Diagnostic[] = makeLint(
-      json,
-      validateObject
-    ).reduce(
+    const diagnostics: Diagnostic[] = makeLint(json, validateObject).reduce(
       (list: Diagnostic[], problem: ILinterProblem<RuleKeys>): Diagnostic[] => {
         const severity = getDiagnosticSeverity(problem.key);
 
@@ -162,6 +166,9 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     );
 
     if (diagnostics.length) {
+      conn.sendDiagnostics({ uri: textDocument.uri, diagnostics });
+    } else {
+      const diagnostics: Diagnostic[] = [];
       conn.sendDiagnostics({ uri: textDocument.uri, diagnostics });
     }
   } else {

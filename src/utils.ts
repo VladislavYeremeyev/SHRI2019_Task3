@@ -139,7 +139,8 @@ export const getModsError = (
 export const getInnerEntities = (
   elem: jsonToAst.AstJsonEntity,
   blockName: string,
-  elementName?: string
+  elementName?: string,
+  level?: number
 ): JsonToAst.AstObject[] => {
   let innerTextBlocks: JsonToAst.AstObject[] = [];
 
@@ -157,15 +158,16 @@ export const getInnerEntities = (
           ) {
             innerTextBlocks = [...innerTextBlocks, child];
           }
-
-          const innerContent = child.children.find(
-            (p) => p.key.value === "content"
-          );
-          if (typeof innerContent !== "undefined") {
-            innerTextBlocks = [
-              ...innerTextBlocks,
-              ...getInnerEntities(innerContent.value, blockName, elementName),
-            ];
+          if (level !== 1) {
+            const innerContent = child.children.find(
+              (p) => p.key.value === "content"
+            );
+            if (typeof innerContent !== "undefined") {
+              innerTextBlocks = [
+                ...innerTextBlocks,
+                ...getInnerEntities(innerContent.value, blockName, elementName),
+              ];
+            }
           }
         }
       });
@@ -180,13 +182,16 @@ export const getInnerEntities = (
       ) {
         innerTextBlocks = [...innerTextBlocks, elem];
       }
-
-      const innerContent = elem.children.find((p) => p.key.value === "content");
-      if (typeof innerContent !== "undefined") {
-        innerTextBlocks = [
-          ...innerTextBlocks,
-          ...getInnerEntities(innerContent.value, blockName, elementName),
-        ];
+      if (level !== 1) {
+        const innerContent = elem.children.find(
+          (p) => p.key.value === "content"
+        );
+        if (typeof innerContent !== "undefined") {
+          innerTextBlocks = [
+            ...innerTextBlocks,
+            ...getInnerEntities(innerContent.value, blockName, elementName),
+          ];
+        }
       }
   }
 
