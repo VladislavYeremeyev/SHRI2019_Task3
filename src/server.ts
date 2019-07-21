@@ -12,8 +12,14 @@ import { basename } from "path";
 
 import * as jsonToAst from "json-to-ast";
 
-import { IExampleConfiguration, RuleKeys, Severity } from "./configuration";
-import { ILinterProblem, makeLint } from "./linter";
+import { IExampleConfiguration, ILinterProblem, RuleErrorText, RuleKeys, Severity } from "./configuration";
+import { checkContentElementRules } from "./customLinter/formContentElementCheck";
+import { checkContentItemElementRules } from "./customLinter/formContentItemElementCheck";
+import { checkFooterRules } from "./customLinter/formFooterCheck";
+import { checkHeaderRules } from "./customLinter/formHeaderCheck";
+import { checkFormContentSize } from "./customLinter/formReferenceSizeCheck";
+import { isBlock } from "./customLinter/utils";
+import { makeLint } from "./linter";
 
 const conn = createConnection(ProposedFeatures.all);
 const docs = new TextDocuments();
@@ -34,10 +40,32 @@ conn.onDidChangeConfiguration(({ settings }: DidChangeConfigurationParams) => {
 
 function getDiagnosticMessage(key: RuleKeys): string {
   switch (key) {
-    case RuleKeys.UppercaseNamesIsForbidden:
-      return "Uppercase properties are forbidden!";
-    case RuleKeys.BlockNameIsRequired:
-      return "Field named 'block' is required!";
+    case RuleKeys.FormElementsSizeShouldBeEqual:
+      return RuleErrorText['FormElementsSizeShouldBeEqual'];
+    case RuleKeys.FormContentVerticalSpaceIsInvalid:
+      return RuleErrorText['FormContentVerticalSpaceIsInvalid'];
+    case RuleKeys.FormContentHorizontalSpaceIsInvalid:
+      return RuleErrorText['FormContentHorizontalSpaceIsInvalid'];
+    case RuleKeys.FormContentItemIndentIsInvalid:
+      return RuleErrorText['FormContentItemIndentIsInvalid'];
+    case RuleKeys.FormHeaderTextSizeIsInvalid:
+      return RuleErrorText['FormHeaderTextSizeIsInvalid'];
+    case RuleKeys.FormHeaderVerticalSpaceIsInvalid:
+      return RuleErrorText['FormHeaderVerticalSpaceIsInvalid'];
+    case RuleKeys.FormHeaderHorizontalSpaceIsInvalid:
+      return RuleErrorText['FormHeaderHorizontalSpaceIsInvalid'];
+    case RuleKeys.FormFooterVerticalSpaceIsInvalid:
+      return RuleErrorText['FormFooterVerticalSpaceIsInvalid'];
+    case RuleKeys.FormFooterHorizontalSpaceIsInvalid:
+      return RuleErrorText['FormFooterHorizontalSpaceIsInvalid'];
+    case RuleKeys.FormFooterTextSizeIsInvalid:
+      return RuleErrorText['FormFooterTextSizeIsInvalid'];
+    case RuleKeys.TextSeveralH1:
+      return RuleErrorText['TextSeveralH1'];
+    case RuleKeys.TextInvalidH2Position:
+      return RuleErrorText['TextInvalidH2Position'];
+    case RuleKeys.TextInvalidH3Position:
+      return RuleErrorText['TextInvalidH3Position'];
     default:
       return `Unknown problem type '${key}'`;
   }
@@ -75,23 +103,39 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
     const source = basename(textDocument.uri);
     const json = textDocument.getText();
 
-    const validateProperty = (
-      property: jsonToAst.AstProperty
-    ): ILinterProblem<RuleKeys>[] =>
-      /^[A-Z]+$/.test(property.key.value)
-        ? [{ key: RuleKeys.UppercaseNamesIsForbidden, loc: property.key.loc }]
-        : [];
+        const validateObject = (
+          obj: jsonToAst.AstObject
+        ): ILinterProblem<RuleKeys>[] => {
+          if (isBlock(obj, "form")) {
+            const formContent = obj.children.find((p) => p.key.value === "content");
+            if (typeof formContent !== "undefined") {
+              let { errors, referenceSize } = checkFormContentSize(
+                obj,
+                formContent.value,
+                undefined
+              );
+              if (typeof referenceSize === "undefined") {
+                errors = [{ key: RuleKeys.FormElementsSizeShouldBeEqual, loc: obj.loc}];
+              } else {
+                errors = [
+                  ...errors,
+                  ...checkContentElementRules(formContent.value, referenceSize),
+                  ...checkContentItemElementRules(formContent.value, referenceSize),
+                  ...checkHeaderRules(formContent.value, referenceSize),
+                  ...checkFooterRules(formContent.value, referenceSize),
+                ];
+              }
 
-    const validateObject = (
-      obj: jsonToAst.AstObject
-    ): ILinterProblem<RuleKeys>[] =>
-      obj.children.some((p) => p.key.value === "block")
-        ? []
-        : [{ key: RuleKeys.BlockNameIsRequired, loc: obj.loc }];
+              return [...errors];
+            }
+            return [];
+          }
+
+          return [];
+        };
 
     const diagnostics: Diagnostic[] = makeLint(
       json,
-      validateProperty,
       validateObject
     ).reduce(
       (list: Diagnostic[], problem: ILinterProblem<RuleKeys>): Diagnostic[] => {

@@ -1,4 +1,6 @@
 import * as jsonToAst from "json-to-ast";
+import { ILinterProblem, RuleKeys } from "./configuration";
+import { checkTextHeaderRules } from "./customLinter/textHeadersCheck";
 
 function parseJson(json: string): jsonToAst.AstJsonEntity | undefined {
   try {
@@ -10,7 +12,6 @@ function parseJson(json: string): jsonToAst.AstJsonEntity | undefined {
 
 function walk(
   node: jsonToAst.AstJsonEntity,
-  cbProp: (property: jsonToAst.AstProperty) => void,
   cbObj: (property: jsonToAst.AstObject) => void
 ) {
   switch (node.type) {
@@ -18,45 +19,38 @@ function walk(
       cbObj(node);
 
       node.children.forEach((property: jsonToAst.AstProperty) => {
-        cbProp(property);
-        walk(property.value, cbProp, cbObj);
+        walk(property.value, cbObj);
       });
       break;
     case "Array":
       node.children.forEach((item: jsonToAst.AstJsonEntity) =>
-        walk(item, cbProp, cbObj)
+        walk(item, cbObj)
       );
       break;
   }
 }
 
-export interface ILinterProblem<TKey> {
-  key: TKey;
-  loc: jsonToAst.AstLocation;
-}
-
-export function makeLint<TProblemKey>(
-  json: string,
-  validateProperty: (
-    property: jsonToAst.AstProperty
-  ) => ILinterProblem<TProblemKey>[],
-  validateObject: (
+export function makeLint(
+  jsonString: string,
+  validateObjectFunction: (
     property: jsonToAst.AstObject
-  ) => ILinterProblem<TProblemKey>[]
-): ILinterProblem<TProblemKey>[] {
-  let errors: ILinterProblem<TProblemKey>[] = [];
-  const ast: jsonToAst.AstJsonEntity | undefined = parseJson(json);
-
-  const cbProp = (property: jsonToAst.AstProperty) => {
-    errors = [...errors, ...validateProperty(property)];
-  };
+  ) => ILinterProblem<RuleKeys>[]
+): ILinterProblem<RuleKeys>[] {
+  let errors: ILinterProblem<RuleKeys>[] = [];
+  const ast: jsonToAst.AstJsonEntity | undefined = parseJson(jsonString);
 
   const cbObj = (obj: jsonToAst.AstObject) => {
-    errors = [...errors, ...validateObject(obj)];
+    errors = [...errors, ...validateObjectFunction(obj)];
   };
 
   if (ast) {
-    walk(ast, cbProp, cbObj);
+    errors = [
+      ...errors,
+      ...checkTextHeaderRules(ast, undefined, false, 1).headerErrors,
+    ];
+    walk(ast, cbObj);
+  } else {
+    console.warn("Invalid JSON");
   }
 
   return errors;
