@@ -403,3 +403,9 @@ npm install
 ```
 
 - запустить расширение vscode (`F5` или вкладка `Debug (Ctrl + Shift + D)` и `Run`)
+
+Скриншоты:
+
+![кастомный линтер 1](screens/screenshot_custom_linter_1.png)
+![кастомный линтер 1](screens/screenshot_custom_linter_2.png)
+![кастомный линтер 1](screens/screenshot_custom_linter_3.png)
