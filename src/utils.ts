@@ -42,7 +42,7 @@ export const getMixedObject = (
     typeof mixProperty !== "undefined" &&
     mixProperty.value.type === "Array"
   ) {
-    mixProperty.value.children.find((mix) => {
+    mixProperty.value.children.forEach((mix) => {
       if (mix.type === "Object") {
         if (typeof elementName === "undefined") {
           if (isBlock(mix, blockName)) {
@@ -51,7 +51,7 @@ export const getMixedObject = (
             } else {
               const modsObj = mix.children.find((p) => p.key.value === "mods");
               if (typeof modsObj !== "undefined") {
-                if (mods.every((mod) => getModValue(modsObj.value, mod))) {
+                if (mods.every((mod) => typeof getModValue(modsObj.value, mod) !== "undefined")) {
                   result = mix;
                 }
               }
@@ -64,7 +64,7 @@ export const getMixedObject = (
             } else {
               const modsObj = mix.children.find((p) => p.key.value === "mods");
               if (typeof modsObj !== "undefined") {
-                if (mods.every((mod) => getModValue(modsObj.value, mod))) {
+                if (mods.every((mod) => typeof getModValue(modsObj.value, mod) !== "undefined")) {
                   result = mix;
                 }
               }

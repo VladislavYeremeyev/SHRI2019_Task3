@@ -22,7 +22,8 @@
 			"type": "node",
 			"request": "attach",
 			"name": "Attach to Server",
-			"port": 6009,
+      "port": 6009,
+      "timeout": 1000000000,
 			"restart": true,
 			"outFiles": ["${workspaceFolder}/out/**/*.js"]
 		},
